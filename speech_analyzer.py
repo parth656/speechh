@@ -12,6 +12,10 @@ STOP_WORDS = {
     "were", "with", "you", "your",
 }
 
+# Keep reference matching responsive and avoid allocating an unbounded edit matrix.
+MAX_REFERENCE_WORDS = 300
+MAX_RECOGNIZED_WORDS = 500
+
 
 def normalize_word(value: str) -> str:
     return re.sub(r"[^a-z0-9']", "", value.lower())
@@ -31,18 +35,24 @@ class SpeechAnalyzer:
             num_workers=1,
         )
 
-    def transcribe(self, audio_path: str, prompt: str = "") -> dict:
-        segments, info = self.model.transcribe(
-            audio_path,
-            language="en",
-            task="transcribe",
-            beam_size=3,
-            temperature=0.0,
-            initial_prompt=prompt or None,
-            word_timestamps=True,
-            vad_filter=True,
-            vad_parameters={"min_silence_duration_ms": 500},
-        )
+    def transcribe(self, audio_path: str, language: str | None = "en") -> dict:
+        """Transcribe independently of the expected text.
+
+        Passing a read-aloud passage as Whisper's initial prompt can make the
+        recognizer prefer words that the speaker did not actually say, so the
+        reference is intentionally never used here.
+        """
+        options = {
+            "task": "transcribe",
+            "beam_size": 3,
+            "temperature": 0.0,
+            "word_timestamps": True,
+            "vad_filter": True,
+            "vad_parameters": {"min_silence_duration_ms": 500},
+        }
+        if language:
+            options["language"] = language
+        segments, info = self.model.transcribe(audio_path, **options)
 
         text_parts = []
         words = []
@@ -79,6 +89,15 @@ class SpeechAnalyzer:
     def align(reference: str, recognized: list[dict]) -> list[tuple]:
         expected = tokenize(reference)
         actual = [item["word"] for item in recognized]
+        if len(expected) > MAX_REFERENCE_WORDS:
+            raise ValueError(
+                f"Reference passages are limited to {MAX_REFERENCE_WORDS} words."
+            )
+        if len(actual) > MAX_RECOGNIZED_WORDS:
+            raise ValueError(
+                "The recording is too long for word-by-word review. "
+                "Please use a shorter recording."
+            )
         rows, cols = len(expected), len(actual)
         dp = [[0] * (cols + 1) for _ in range(rows + 1)]
 
@@ -205,8 +224,13 @@ class SpeechAnalyzer:
         reference: str,
         threshold: float,
         maximum: int,
+        language: str | None = "en",
     ) -> dict:
-        raw = self.transcribe(audio_path, prompt=reference)
+        if mode == "Read a reference passage" and len(tokenize(reference)) > MAX_REFERENCE_WORDS:
+            raise ValueError(
+                f"Reference passages are limited to {MAX_REFERENCE_WORDS} words."
+            )
+        raw = self.transcribe(audio_path, language=language)
 
         if mode == "Read a reference passage":
             flagged = self.review_reference(

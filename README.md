@@ -1,6 +1,16 @@
 # NeuroSpeech Coach
 
-A beginner-friendly Streamlit application that records or uploads speech, transcribes it with Faster-Whisper, and shows words that may need review.
+A Streamlit practice tool that records or uploads speech, transcribes it with Faster-Whisper, and highlights words worth reviewing. It can also build a new practice passage from words that have repeatedly needed review during the current browser session.
+
+> Important: transcription confidence and transcript mismatches are **not** pronunciation scores. They can be affected by recording quality, noise, accent, and speech-recognition errors. This app is not a clinical diagnosis or a replacement for a speech-language professional.
+
+## How feedback works
+
+For reference-passage practice, the app transcribes the audio **without giving Whisper the expected passage**, then aligns the independent transcript with the reference. This avoids priming the recognizer toward words that the speaker was expected to say.
+
+For free speech, the app highlights content words with low transcription confidence. These are suggestions to review, not confirmed mistakes.
+
+The personal practice feature stores a small in-browser profile of words that repeatedly need review. It does not train, fine-tune, or modify Whisper, and it cannot promise to correct a speech difficulty quickly.
 
 ## Recommended deployment model
 
@@ -20,6 +30,8 @@ The heavier models are optional:
 .
 ├── app.py
 ├── speech_analyzer.py
+├── practice_generator.py
+├── test_speech_analyzer.py
 ├── requirements.txt
 ├── packages.txt
 ├── .gitignore
@@ -52,6 +64,7 @@ streamlit run app.py
 
 ```bash
 python -m py_compile app.py speech_analyzer.py
+python -m unittest -v
 ```
 
 ## Deploy to Streamlit Community Cloud
@@ -64,6 +77,8 @@ python -m py_compile app.py speech_analyzer.py
 
 The first analysis can take longer because the selected Whisper model must be downloaded.
 
-## Important limitation
+## Practical limits
 
-The confidence score comes from speech recognition. It is useful for practice feedback, but it is not a medical or speech-language diagnosis.
+- Uploads are limited to 25 MB.
+- Reference passages are limited to 300 words so word-by-word review remains responsive.
+- English-only Whisper models are kept in English mode. Multilingual models can either detect language automatically or be set to English.
