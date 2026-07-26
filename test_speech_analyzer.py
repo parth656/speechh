@@ -6,7 +6,11 @@ import unittest
 # load a Whisper model.
 sys.modules.setdefault("faster_whisper", types.SimpleNamespace(WhisperModel=object))
 
-from practice_generator import focus_words_from_profile, generate_practice_content
+from practice_generator import (
+    focus_words_from_profile,
+    generate_practice_content,
+    generate_random_passage,
+)
 from speech_analyzer import MAX_REFERENCE_WORDS, SpeechAnalyzer, tokenize
 
 
@@ -57,6 +61,10 @@ class SpeechAnalyzerTests(unittest.TestCase):
 
 
 class PracticeGeneratorTests(unittest.TestCase):
+    def test_random_passage_is_available_for_every_level(self):
+        for level in ("beginner", "intermediate", "advanced"):
+            self.assertGreater(len(generate_random_passage(level).split()), 10)
+
     def test_generated_practice_contains_each_target(self):
         text = generate_practice_content(
             ["rhythm", "comfortable"], "beginner", 4, "paragraph"

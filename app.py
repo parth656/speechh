@@ -7,7 +7,11 @@ import streamlit as st
 import streamlit.components.v1 as components
 from audio_recorder_streamlit import audio_recorder
 
-from practice_generator import focus_words_from_profile, generate_practice_content
+from practice_generator import (
+    focus_words_from_profile,
+    generate_practice_content,
+    generate_random_passage,
+)
 from speech_analyzer import MAX_REFERENCE_WORDS, STOP_WORDS, SpeechAnalyzer, tokenize
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
@@ -148,6 +152,15 @@ mode = st.radio(
 
 reference = ""
 if mode == "Read a reference passage":
+    st.caption("No passage planned? Generate one and start practising right away.")
+    random_col, button_col = st.columns([2, 1])
+    random_level = random_col.selectbox(
+        "Automatic passage level",
+        ["beginner", "intermediate", "advanced"],
+        key="random_passage_level",
+    )
+    if button_col.button("Generate a random passage", use_container_width=True):
+        st.session_state.reference_text = generate_random_passage(random_level)
     reference = st.text_area(
         "Paste exactly what you plan to read",
         height=130,

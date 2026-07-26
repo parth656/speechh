@@ -1,6 +1,31 @@
 import random
 
 
+RANDOM_PASSAGES = {
+    "beginner": [
+        "The morning sun shines through my window. I make a warm drink and plan my day. Then I take a slow walk through the quiet park.",
+        "My small garden has green plants and bright flowers. I water them each morning and watch the birds near the fence. The fresh air makes me feel calm.",
+        "I enjoy reading a short story after dinner. The characters travel to new places and solve simple problems. A good story helps me relax.",
+    ],
+    "intermediate": [
+        "On Saturday, I visited a local market with a friend. We compared fresh fruit, chose a few ingredients, and cooked a simple meal at home. The conversation made the afternoon pass quickly.",
+        "Learning a new skill takes patience and regular practice. I set a small goal, notice what feels difficult, and try again the next day. Progress becomes easier to see over time.",
+        "During my commute, I pay attention to the changing weather and the people around me. A brief pause helps me arrive with a clearer mind and a better plan for the day.",
+    ],
+    "advanced": [
+        "Effective communication combines clear pronunciation with thoughtful pacing. When I pause between ideas, I give listeners time to understand my meaning and give myself time to choose precise words.",
+        "A challenging task often becomes manageable when it is divided into small, deliberate steps. By reviewing each attempt and adjusting my approach, I build confidence without rushing the process.",
+        "Curiosity encourages me to ask better questions and consider unfamiliar perspectives. Even a brief conversation can reveal useful details, strengthen understanding, and inspire a more creative solution.",
+    ],
+}
+
+
+def generate_random_passage(level: str) -> str:
+    """Return a ready-to-read passage without requiring focus words or an API."""
+    passages = RANDOM_PASSAGES.get(level, RANDOM_PASSAGES["beginner"])
+    return random.choice(passages)
+
+
 def focus_words_from_profile(profile: dict[str, dict], limit: int = 6) -> list[str]:
     """Return the words that most often need review in this browser session."""
     ranked = sorted(
