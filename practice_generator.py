@@ -93,6 +93,21 @@ def generate_random_passage(level: str) -> str:
     )
 
 
+def generate_adaptive_passage(level: str, focus_words: list[str]) -> str:
+    """Create fresh reading material and add a concise, personalised drill."""
+    passage = generate_random_passage(level)
+    words = [word.strip().lower() for word in focus_words if word.strip()][:3]
+    if not words:
+        return passage
+    joined = ", ".join(words[:-1]) + (f" and {words[-1]}" if len(words) > 1 else words[0])
+    drills = [
+        f"For focused practice, I say {joined} slowly, clearly, and then at a natural pace.",
+        f"Before I finish, I repeat {joined} with steady rhythm and careful attention.",
+        f"I use {joined} in a clear voice and pause briefly between each important word.",
+    ]
+    return f"{passage} {random.choice(drills)}"
+
+
 def focus_words_from_profile(profile: dict[str, dict], limit: int = 6) -> list[str]:
     """Return the words that most often need review in this browser session."""
     ranked = sorted(

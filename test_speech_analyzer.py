@@ -8,6 +8,7 @@ sys.modules.setdefault("faster_whisper", types.SimpleNamespace(WhisperModel=obje
 
 from practice_generator import (
     focus_words_from_profile,
+    generate_adaptive_passage,
     generate_practice_content,
     generate_random_passage,
 )
@@ -61,6 +62,11 @@ class SpeechAnalyzerTests(unittest.TestCase):
 
 
 class PracticeGeneratorTests(unittest.TestCase):
+    def test_adaptive_passage_includes_focus_words(self):
+        passage = generate_adaptive_passage("beginner", ["rhythm", "clarity"])
+        self.assertIn("rhythm", passage)
+        self.assertIn("clarity", passage)
+
     def test_random_passage_is_available_for_every_level(self):
         for level in ("beginner", "intermediate", "advanced"):
             passage = generate_random_passage(level)

@@ -9,6 +9,7 @@ from audio_recorder_streamlit import audio_recorder
 
 from practice_generator import (
     focus_words_from_profile,
+    generate_adaptive_passage,
     generate_practice_content,
     generate_random_passage,
 )
@@ -162,8 +163,19 @@ if mode == "Read a reference passage":
         ["beginner", "intermediate", "advanced"],
         key="random_passage_level",
     )
+    history_words = focus_words_from_profile(st.session_state.practice_profile, limit=3)
+    use_history_words = st.checkbox(
+        "Include my review words when available",
+        value=bool(history_words),
+        help="After an analysis, this adds up to three words that repeatedly needed review.",
+    )
     if button_col.button("Generate smart passage", use_container_width=True):
-        st.session_state.reference_text = generate_random_passage(random_level)
+        if use_history_words:
+            st.session_state.reference_text = generate_adaptive_passage(
+                random_level, history_words
+            )
+        else:
+            st.session_state.reference_text = generate_random_passage(random_level)
     reference = st.text_area(
         "Paste exactly what you plan to read",
         height=130,
