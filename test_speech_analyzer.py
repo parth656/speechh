@@ -63,7 +63,9 @@ class SpeechAnalyzerTests(unittest.TestCase):
 class PracticeGeneratorTests(unittest.TestCase):
     def test_random_passage_is_available_for_every_level(self):
         for level in ("beginner", "intermediate", "advanced"):
-            self.assertGreater(len(generate_random_passage(level).split()), 10)
+            passage = generate_random_passage(level)
+            self.assertGreater(len(passage.split()), 10)
+            self.assertEqual(len(passage.split(". ")), 3)
 
     def test_generated_practice_contains_each_target(self):
         text = generate_practice_content(

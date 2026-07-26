@@ -152,14 +152,17 @@ mode = st.radio(
 
 reference = ""
 if mode == "Read a reference passage":
-    st.caption("No passage planned? Generate one and start practising right away.")
+    st.caption(
+        "No passage planned? Use the smart local generator for varied, "
+        "level-appropriate practice material."
+    )
     random_col, button_col = st.columns([2, 1])
     random_level = random_col.selectbox(
         "Automatic passage level",
         ["beginner", "intermediate", "advanced"],
         key="random_passage_level",
     )
-    if button_col.button("Generate a random passage", use_container_width=True):
+    if button_col.button("Generate smart passage", use_container_width=True):
         st.session_state.reference_text = generate_random_passage(random_level)
     reference = st.text_area(
         "Paste exactly what you plan to read",

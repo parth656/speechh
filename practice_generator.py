@@ -1,29 +1,96 @@
 import random
 
 
-RANDOM_PASSAGES = {
-    "beginner": [
-        "The morning sun shines through my window. I make a warm drink and plan my day. Then I take a slow walk through the quiet park.",
-        "My small garden has green plants and bright flowers. I water them each morning and watch the birds near the fence. The fresh air makes me feel calm.",
-        "I enjoy reading a short story after dinner. The characters travel to new places and solve simple problems. A good story helps me relax.",
-    ],
-    "intermediate": [
-        "On Saturday, I visited a local market with a friend. We compared fresh fruit, chose a few ingredients, and cooked a simple meal at home. The conversation made the afternoon pass quickly.",
-        "Learning a new skill takes patience and regular practice. I set a small goal, notice what feels difficult, and try again the next day. Progress becomes easier to see over time.",
-        "During my commute, I pay attention to the changing weather and the people around me. A brief pause helps me arrive with a clearer mind and a better plan for the day.",
-    ],
-    "advanced": [
-        "Effective communication combines clear pronunciation with thoughtful pacing. When I pause between ideas, I give listeners time to understand my meaning and give myself time to choose precise words.",
-        "A challenging task often becomes manageable when it is divided into small, deliberate steps. By reviewing each attempt and adjusting my approach, I build confidence without rushing the process.",
-        "Curiosity encourages me to ask better questions and consider unfamiliar perspectives. Even a brief conversation can reveal useful details, strengthen understanding, and inspire a more creative solution.",
-    ],
+PASSAGE_PARTS = {
+    "beginner": {
+        "openers": [
+            "The morning breeze moves softly through the trees.",
+            "A bright bird sings near my open window.",
+            "After breakfast, I look at the sky and smile.",
+            "The quiet street becomes busy as the day begins.",
+            "Warm sunlight reaches the floor beside my chair.",
+            "I begin the day with a calm and steady breath.",
+        ],
+        "actions": [
+            "I choose one small task and finish it carefully.",
+            "I walk to the park and notice the green leaves.",
+            "I make a simple meal and share it with my family.",
+            "I read a short story and imagine a new place.",
+            "I tidy my desk before I start my work.",
+            "I call a friend and listen to their news.",
+        ],
+        "closers": [
+            "A peaceful moment helps me feel ready for tomorrow.",
+            "By evening, I feel proud of my small progress.",
+            "The fresh air makes my thoughts feel clear.",
+            "I end the day slowly and get ready to rest.",
+            "Each simple step helps me build confidence.",
+            "I am grateful for a calm and useful day.",
+        ],
+    },
+    "intermediate": {
+        "openers": [
+            "On Saturday morning, I visited a lively market near my home.",
+            "A short walk through the neighbourhood gave me time to think.",
+            "Learning a new skill becomes easier when I practise in small steps.",
+            "During my commute, I noticed how quickly the weather changed.",
+            "A thoughtful conversation can change the direction of an ordinary day.",
+            "I started the week by writing down one realistic goal.",
+        ],
+        "actions": [
+            "I compared several options before making a careful decision.",
+            "I paused, reviewed my work, and adjusted my plan.",
+            "I asked a useful question instead of guessing the answer.",
+            "I focused on one priority before moving to the next task.",
+            "I noticed a difficult detail and practised it again at a slower pace.",
+            "I shared an idea with a friend and listened to a different perspective.",
+        ],
+        "closers": [
+            "That small effort made the rest of the day feel more manageable.",
+            "Regular practice helps progress become easier to notice over time.",
+            "A clear plan gave me more confidence for the next step.",
+            "I finished with a better understanding than I had at the start.",
+            "The experience reminded me that patience produces useful results.",
+            "By slowing down, I made room for a more thoughtful response.",
+        ],
+    },
+    "advanced": {
+        "openers": [
+            "Effective communication depends on both clear expression and careful listening.",
+            "A challenging project becomes less intimidating when its purpose is well defined.",
+            "Curiosity encourages people to examine familiar problems from unfamiliar angles.",
+            "A quiet moment of reflection can improve the quality of a difficult decision.",
+            "Meaningful progress often begins with an honest assessment of the present situation.",
+            "A productive discussion requires participants to balance confidence with openness.",
+        ],
+        "actions": [
+            "I separated the larger goal into deliberate steps and reviewed each one.",
+            "I paused between ideas so that my explanation remained precise and easy to follow.",
+            "I considered evidence that challenged my first assumption before responding.",
+            "I adjusted my pace, clarified the important details, and invited useful feedback.",
+            "I chose specific language rather than relying on vague or repetitive phrases.",
+            "I compared several possible solutions before selecting the most practical approach.",
+        ],
+        "closers": [
+            "The result was a clearer plan and a stronger sense of responsibility.",
+            "This approach made the next conversation more focused and constructive.",
+            "Over time, deliberate practice transforms uncertainty into confidence.",
+            "The experience showed that precision and patience can work together.",
+            "A measured response often creates more progress than a quick reaction.",
+            "That reflection provided a useful foundation for future improvement.",
+        ],
+    },
 }
 
 
 def generate_random_passage(level: str) -> str:
-    """Return a ready-to-read passage without requiring focus words or an API."""
-    passages = RANDOM_PASSAGES.get(level, RANDOM_PASSAGES["beginner"])
-    return random.choice(passages)
+    """Create a varied, level-appropriate passage without an API or model download."""
+    parts = PASSAGE_PARTS.get(level, PASSAGE_PARTS["beginner"])
+    # One distinct sentence from each group gives 216 combinations per level
+    # while keeping the passage coherent and free of repeated sentences.
+    return " ".join(
+        random.choice(parts[group]) for group in ("openers", "actions", "closers")
+    )
 
 
 def focus_words_from_profile(profile: dict[str, dict], limit: int = 6) -> list[str]:
