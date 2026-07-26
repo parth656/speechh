@@ -108,6 +108,7 @@ for key, default in {
     "result": None,
     "result_input": None,
     "practice_profile": {},
+    "practice_words": "",
     "generated_practice": "",
     "reference_text": "",
 }.items():
@@ -222,6 +223,7 @@ if st.button("Analyze my speech", type="primary", disabled=not ready, use_contai
                 st.session_state.generated_practice = generate_practice_content(
                     focus_words, "beginner", max(3, len(focus_words)), "paragraph"
                 )
+                st.session_state.practice_words = ", ".join(focus_words)
             status.update(label="Analysis complete", state="complete", expanded=False)
     except Exception as error:
         st.session_state.result = None
@@ -269,29 +271,6 @@ if result:
             st.caption(item["reason"])
             st.info(f'Say “{item["word"]}” slowly once, then at normal speed three times.')
 
-    focus_words = focus_words_from_profile(st.session_state.practice_profile)
-    if focus_words:
-        st.subheader("Personalised practice")
-        st.caption(
-            "This session's repeated review words are used to create practice material. "
-            "It does not train or alter the Whisper model."
-        )
-        level_col, style_col, count_col = st.columns(3)
-        level = level_col.selectbox("Level", ["beginner", "intermediate", "advanced"])
-        style = style_col.selectbox("Format", ["paragraph", "sentences"])
-        sentence_count = count_col.slider("Practice sentences", 3, 12, max(3, len(focus_words)))
-        if st.button("Generate new practice", use_container_width=True):
-            st.session_state.generated_practice = generate_practice_content(
-                focus_words, level, sentence_count, style
-            )
-        st.write("Focus words: " + ", ".join(focus_words))
-        st.text_area("Generated practice", st.session_state.generated_practice, height=150)
-        st.caption("Listen in your browser. No practice text is sent to a text-to-speech service.")
-        render_spoken_practice(st.session_state.generated_practice)
-        if st.button("Use generated practice as my next reference"):
-            st.session_state.use_generated_practice = True
-            st.rerun()
-
     report = {**result, "practice_profile": st.session_state.practice_profile}
     st.download_button(
         "Download JSON report",
@@ -300,3 +279,42 @@ if result:
         mime="application/json",
         use_container_width=True,
     )
+
+st.divider()
+st.subheader("Practice Generator")
+st.caption(
+    "Enter words yourself, or analyse a recording to automatically fill this "
+    "with words that repeatedly need review in this browser session."
+)
+auto_focus_words = focus_words_from_profile(st.session_state.practice_profile)
+if auto_focus_words:
+    st.caption("Automatically suggested words: " + ", ".join(auto_focus_words))
+
+practice_input = st.text_input(
+    "Focus words (separate with commas or spaces)",
+    placeholder="rhythm, comfortable, clear",
+    key="practice_words",
+)
+practice_words = [
+    word for word in tokenize(practice_input.replace(",", " ")) if word not in STOP_WORDS
+]
+level_col, style_col, count_col = st.columns(3)
+practice_level = level_col.selectbox("Level", ["beginner", "intermediate", "advanced"])
+practice_style = style_col.selectbox("Format", ["paragraph", "sentences"])
+practice_count = count_col.slider("Practice sentences", 3, 12, 5)
+
+if st.button("Generate practice", type="primary", use_container_width=True):
+    if not practice_words:
+        st.warning("Enter at least one focus word, or analyse a recording first.")
+    else:
+        st.session_state.generated_practice = generate_practice_content(
+            practice_words, practice_level, practice_count, practice_style
+        )
+
+if st.session_state.generated_practice:
+    st.text_area("Generated practice", st.session_state.generated_practice, height=150)
+    st.caption("Listen in your browser. No practice text is sent to a text-to-speech service.")
+    render_spoken_practice(st.session_state.generated_practice)
+    if st.button("Use generated practice as my next reference"):
+        st.session_state.use_generated_practice = True
+        st.rerun()
