@@ -1,6 +1,6 @@
 # NeuroSpeech Coach
 
-A Streamlit practice tool that records or uploads speech, transcribes it with Faster-Whisper, and highlights words worth reviewing. It can also build a new practice passage from words that have repeatedly needed review during the current browser session.
+A Streamlit practice tool that records or uploads speech, transcribes it with Faster-Whisper, and highlights words worth reviewing. It can also build a new practice passage from words that have repeatedly needed review during the current browser session and read that passage aloud with the browser's built-in text-to-speech.
 
 > Important: transcription confidence and transcript mismatches are **not** pronunciation scores. They can be affected by recording quality, noise, accent, and speech-recognition errors. This app is not a clinical diagnosis or a replacement for a speech-language professional.
 
@@ -10,7 +10,7 @@ For reference-passage practice, the app transcribes the audio **without giving W
 
 For free speech, the app highlights content words with low transcription confidence. These are suggestions to review, not confirmed mistakes.
 
-The personal practice feature stores a small in-browser profile of words that repeatedly need review. It does not train, fine-tune, or modify Whisper, and it cannot promise to correct a speech difficulty quickly.
+The personal practice feature stores a small in-browser profile of words that repeatedly need review. It does not train, fine-tune, or modify Whisper, and it cannot promise to correct a speech difficulty quickly. The spoken-practice control uses the browser's local speech-synthesis capability, so voice availability depends on the user's browser and operating system.
 
 ## Recommended deployment model
 

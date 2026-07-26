@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 from audio_recorder_streamlit import audio_recorder
 
 from practice_generator import focus_words_from_profile, generate_practice_content
@@ -49,6 +50,45 @@ def update_practice_profile(result: dict, reference: str) -> None:
         stats["attempts"] += 1
         if word in flagged_expected:
             stats["review_count"] += 1
+
+
+def render_spoken_practice(text: str) -> None:
+    """Add browser-based text-to-speech without sending practice text to an API."""
+    if not text:
+        return
+    # The practice generator only produces normalized focus words, but escape a
+    # closing script tag as a defense-in-depth measure before embedding JSON.
+    spoken_text = json.dumps(text).replace("</", "<\\/")
+    components.html(
+        f"""
+        <div style="display:flex;gap:.5rem;align-items:center;font-family:sans-serif">
+          <button id="speak" type="button">▶ Generate spoken practice</button>
+          <button id="stop" type="button">■ Stop</button>
+          <label for="rate">Speed</label>
+          <select id="rate">
+            <option value="0.8">Slow</option>
+            <option value="1" selected>Normal</option>
+            <option value="1.15">Fast</option>
+          </select>
+        </div>
+        <script>
+          const practiceText = {spoken_text};
+          const speak = document.getElementById("speak");
+          const stop = document.getElementById("stop");
+          const rate = document.getElementById("rate");
+
+          speak.addEventListener("click", () => {{
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(practiceText);
+            utterance.lang = "en-US";
+            utterance.rate = Number(rate.value);
+            window.speechSynthesis.speak(utterance);
+          }});
+          stop.addEventListener("click", () => window.speechSynthesis.cancel());
+        </script>
+        """,
+        height=55,
+    )
 
     # Free-speech findings cannot establish a "wrong" word, but can still be
     # added as optional practice targets.
@@ -246,6 +286,8 @@ if result:
             )
         st.write("Focus words: " + ", ".join(focus_words))
         st.text_area("Generated practice", st.session_state.generated_practice, height=150)
+        st.caption("Listen in your browser. No practice text is sent to a text-to-speech service.")
+        render_spoken_practice(st.session_state.generated_practice)
         if st.button("Use generated practice as my next reference"):
             st.session_state.use_generated_practice = True
             st.rerun()
