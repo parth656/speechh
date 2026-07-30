@@ -56,6 +56,14 @@ def update_practice_profile(result: dict, reference: str) -> None:
         if word in flagged_expected:
             stats["review_count"] += 1
 
+    # Free-speech findings cannot establish a "wrong" word, but can still be
+    # added as optional practice targets.
+    if not expected_words:
+        for item in result["flagged_words"]:
+            word = item["word"]
+            stats = profile.setdefault(word, {"attempts": 0, "review_count": 0})
+            stats["review_count"] += 1
+
 
 def render_spoken_practice(text: str) -> None:
     """Add browser-based text-to-speech without sending practice text to an API."""
@@ -94,15 +102,6 @@ def render_spoken_practice(text: str) -> None:
         """,
         height=55,
     )
-
-    # Free-speech findings cannot establish a "wrong" word, but can still be
-    # added as optional practice targets.
-    if not expected_words:
-        for item in result["flagged_words"]:
-            word = item["word"]
-            stats = profile.setdefault(word, {"attempts": 0, "review_count": 0})
-            stats["review_count"] += 1
-
 
 @st.cache_resource(show_spinner=False, max_entries=2)
 def get_analyzer(model_name: str) -> SpeechAnalyzer:
