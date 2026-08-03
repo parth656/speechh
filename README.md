@@ -14,15 +14,9 @@ The personal practice feature stores a small in-browser profile of words that re
 
 ## Recommended deployment model
 
-Use **Small English (`small.en`)** on Streamlit Community Cloud. It provides a practical balance between accuracy, download size, memory use, and CPU speed.
+Use **Base English (`base.en`)** on Streamlit Community Cloud. It is the default because it has the lowest memory demand and is least likely to crash a free Cloud deployment while loading.
 
-The heavier models are optional:
-
-- `base.en`: fastest and lightest fallback
-- `small.en`: recommended cloud model
-- `distil-large-v3`: better English accuracy but heavier
-- `turbo`: advanced multilingual model; experimental on free cloud
-- `large-v3`: maximum accuracy but normally too heavy for free cloud
+`small.en` remains available as an optional accuracy upgrade, but it can exceed free Cloud memory limits. The larger and multilingual models are intentionally excluded from the Cloud UI.
 
 ## Files
 
@@ -63,7 +57,7 @@ streamlit run app.py
 ## Check the Python files
 
 ```bash
-python -m py_compile app.py speech_analyzer.py
+python -m py_compile app.py speech_analyzer.py practice_generator.py
 python -m unittest -v
 ```
 
@@ -73,7 +67,7 @@ python -m unittest -v
 2. Open Streamlit Community Cloud.
 3. Select the repository and `app.py` as the main file.
 4. Deploy or reboot the application.
-5. Keep `small.en` selected initially.
+5. Keep `base.en` selected initially.
 
 The first analysis can take longer because the selected Whisper model must be downloaded.
 

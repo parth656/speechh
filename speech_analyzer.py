@@ -26,12 +26,12 @@ def tokenize(value: str) -> list[str]:
 
 
 class SpeechAnalyzer:
-    def __init__(self, model_name: str = "small.en"):
+    def __init__(self, model_name: str = "base.en"):
         self.model = WhisperModel(
             model_name,
             device="cpu",
             compute_type="int8",
-            cpu_threads=2,
+            cpu_threads=1,
             num_workers=1,
         )
 

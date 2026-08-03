@@ -25,11 +25,8 @@ st.caption(
 )
 
 MODEL_OPTIONS = {
-    "Small English — recommended for Streamlit Cloud": "small.en",
-    "Base English — fastest and lightest": "base.en",
-    "Distil Large V3 — English, higher accuracy, heavier": "distil-large-v3",
-    "Turbo — multilingual, experimental on free cloud": "turbo",
-    "Large V3 — multilingual, likely too heavy for free cloud": "large-v3",
+    "Base English — recommended for Streamlit Cloud": "base.en",
+    "Small English — higher accuracy, may use too much cloud memory": "small.en",
 }
 
 
@@ -129,22 +126,12 @@ with st.sidebar:
     threshold = st.slider("Review threshold", 0.20, 0.90, 0.55, 0.01)
     maximum = st.slider("Maximum review words", 3, 20, 10)
 
-    if selected_model.endswith(".en") or selected_model == "distil-large-v3":
-        language = "en"
-        st.caption("This model is configured for English transcription.")
+    language = "en"
+    st.caption("This app is configured for English transcription.")
+    if selected_model == "small.en":
+        st.warning("Small English may exceed Streamlit Community Cloud memory limits.")
     else:
-        language_choice = st.selectbox(
-            "Transcription language",
-            ["Detect automatically", "English"],
-        )
-        language = None if language_choice == "Detect automatically" else "en"
-
-    if selected_model in {"large-v3", "turbo"}:
-        st.warning("This model may exceed Streamlit Community Cloud limits.")
-    elif selected_model == "distil-large-v3":
-        st.info("The first model download can take several minutes.")
-    else:
-        st.success("Cloud-friendly model selected.")
+        st.success("Cloud-safe model selected.")
 
 mode = st.radio(
     "Practice mode", ["Read a reference passage", "Free speech"], horizontal=True
