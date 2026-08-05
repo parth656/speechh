@@ -47,6 +47,35 @@ class SpeechAnalyzerTests(unittest.TestCase):
         self.assertEqual(rows[1][0], "blue")
         self.assertEqual(rows[1][2], "different")
 
+    def test_every_reference_word_receives_a_correct_or_wrong_result(self):
+        reviews, unexpected = SpeechAnalyzer.evaluate_reference_words(
+            "The bright blue bird",
+            [word("the"), word("bright"), word("green"), word("bird")],
+        )
+        self.assertEqual([item["expected"] for item in reviews], [
+            "the", "bright", "blue", "bird"
+        ])
+        self.assertEqual(
+            [item["status"] for item in reviews],
+            ["correct", "correct", "wrong", "correct"],
+        )
+        self.assertEqual(reviews[2]["heard"], "green")
+        self.assertEqual(unexpected, [])
+
+    def test_missing_reference_word_is_marked_wrong(self):
+        reviews, _ = SpeechAnalyzer.evaluate_reference_words(
+            "red blue green", [word("red"), word("green")]
+        )
+        self.assertEqual(reviews[1]["expected"], "blue")
+        self.assertEqual(reviews[1]["status"], "wrong")
+        self.assertEqual(reviews[1]["heard"], "Not detected")
+
+    def test_unexpected_transcript_word_is_reported(self):
+        _reviews, unexpected = SpeechAnalyzer.evaluate_reference_words(
+            "red blue", [word("red"), word("green"), word("blue")]
+        )
+        self.assertEqual([item["word"] for item in unexpected], ["green"])
+
     def test_reference_limit_is_enforced(self):
         reference = "word " * (MAX_REFERENCE_WORDS + 1)
         with self.assertRaises(ValueError):

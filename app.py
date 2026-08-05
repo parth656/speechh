@@ -259,7 +259,10 @@ if result:
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Duration", f'{result["duration"]:.1f}s')
     col2.metric("Words", result["word_count"])
-    col3.metric("Words to review", len(result["flagged_words"]))
+    if result["mode"] == "Read a reference passage":
+        col3.metric("Matched words", result.get("correct_word_count", 0))
+    else:
+        col3.metric("Words to review", len(result["flagged_words"]))
     col4.metric("Speech rate", f'{result["words_per_minute"]:.0f} WPM')
     st.caption(
         f'Model: {result["model"]} | Language: {result["language"]} '
@@ -267,10 +270,41 @@ if result:
         f'Setting: {result["language_setting"]}'
     )
 
-    st.subheader("Words to review")
+    if result["mode"] == "Read a reference passage":
+        st.subheader("Word-by-word review")
+        st.caption(
+            "Every word in the reference is compared with the independent transcript. "
+            "A green match means Whisper heard the expected word; a red result means "
+            "it heard a different word or did not detect one. This is not a verified "
+            "pronunciation assessment."
+        )
+        review_col1, review_col2, review_col3 = st.columns(3)
+        word_reviews = result.get("word_reviews", [])
+        review_col1.metric("Correct / matched", result.get("correct_word_count", 0))
+        review_col2.metric("Wrong / needs review", result.get("incorrect_word_count", 0))
+        review_col3.metric("Expected words", len(word_reviews))
+
+        review_rows = [
+            {
+                "#": item["position"],
+                "Expected": item["expected"],
+                "Result": "✅ Correct" if item["status"] == "correct" else "❌ Wrong",
+                "Whisper heard": item["heard"],
+                "Confidence": f'{item["confidence"]:.0%}' if item["outcome"] != "missing" else "—",
+            }
+            for item in word_reviews
+        ]
+        st.dataframe(review_rows, hide_index=True, use_container_width=True)
+        if result.get("unexpected_words"):
+            st.caption(
+                "Additional transcript words not present in the reference: "
+                + ", ".join(item["display_word"] for item in result["unexpected_words"])
+            )
+
+    st.subheader("Suggested words to practise")
     st.caption(
-        "These are transcription mismatches or low-confidence words, not verified "
-        "pronunciation mistakes. Review them by listening back and practising slowly."
+        "These are the most useful transcription mismatches or low-confidence words "
+        "to listen back to and practise slowly. They are not verified pronunciation mistakes."
     )
     if not result["flagged_words"]:
         st.success("No clear transcription mismatches or low-confidence content words were found.")

@@ -143,13 +143,24 @@ class SpeechAnalyzer:
         threshold: float,
         maximum: int,
     ) -> list[dict]:
+        """Return a short list of content words that are useful to practise.
+
+        The complete word-by-word comparison is produced separately by
+        ``evaluate_reference_words``.  This list deliberately remains limited
+        so it can be used for the practice generator without overwhelming it.
+        """
         findings = []
 
-        for expected, actual, operation in self.align(reference, recognized):
-            if operation == "match":
+        word_reviews, unexpected_words = self.evaluate_reference_words(
+            reference, recognized
+        )
+
+        for item in word_reviews:
+            if item["status"] == "correct":
                 continue
 
-            if operation == "missing":
+            expected = item["expected"]
+            if item["outcome"] == "missing":
                 if expected in STOP_WORDS:
                     continue
                 findings.append({
@@ -162,19 +173,8 @@ class SpeechAnalyzer:
                 })
                 continue
 
-            if operation == "extra":
-                if actual["word"] in STOP_WORDS or len(actual["word"]) < 3:
-                    continue
-                findings.append({
-                    **actual,
-                    "expected": "Not expected",
-                    "heard": actual["display_word"],
-                    "reason": "Unexpected content word was recognized.",
-                    "severity": 0.65,
-                })
-                continue
-
-            similarity = SequenceMatcher(None, expected, actual["word"]).ratio()
+            actual = item
+            similarity = SequenceMatcher(None, expected, actual["heard_normalized"]).ratio()
             if similarity >= 0.88 and actual["confidence"] >= threshold:
                 continue
             if expected in STOP_WORDS and similarity >= 0.55:
@@ -189,8 +189,79 @@ class SpeechAnalyzer:
                 "severity": max(1.0 - similarity, 1.0 - actual["confidence"]),
             })
 
+        for actual in unexpected_words:
+            if actual["word"] in STOP_WORDS or len(actual["word"]) < 3:
+                continue
+            findings.append({
+                **actual,
+                "expected": "Not expected",
+                "heard": actual["display_word"],
+                "reason": "Unexpected content word was recognized.",
+                "severity": 0.65,
+            })
+
         findings.sort(key=lambda item: -item["severity"])
         return findings[:maximum]
+
+    @classmethod
+    def evaluate_reference_words(
+        cls, reference: str, recognized: list[dict]
+    ) -> tuple[list[dict], list[dict]]:
+        """Compare every expected word with the independently made transcript.
+
+        A ``correct`` result means the recognizer matched the expected word,
+        not that pronunciation was clinically verified.  Keeping the complete
+        result separate from the practice shortlist ensures even common words
+        such as "the" and "and" receive a visible result.
+        """
+        word_reviews = []
+        unexpected_words = []
+        position = 0
+
+        for expected, actual, operation in cls.align(reference, recognized):
+            if operation == "extra":
+                unexpected_words.append(actual)
+                continue
+
+            position += 1
+            if operation == "missing":
+                word_reviews.append({
+                    "position": position,
+                    "word": expected,
+                    "expected": expected,
+                    "heard": "Not detected",
+                    "heard_normalized": "",
+                    "confidence": 0.0,
+                    "status": "wrong",
+                    "outcome": "missing",
+                    "reason": "This expected word was not detected in the transcript.",
+                })
+                continue
+
+            base = {
+                **actual,
+                "position": position,
+                "word": expected,
+                "expected": expected,
+                "heard": actual["display_word"],
+                "heard_normalized": actual["word"],
+            }
+            if operation == "match":
+                word_reviews.append({
+                    **base,
+                    "status": "correct",
+                    "outcome": "match",
+                    "reason": "Matched the expected word in the transcript.",
+                })
+            else:
+                word_reviews.append({
+                    **base,
+                    "status": "wrong",
+                    "outcome": "different",
+                    "reason": "A different word was recognized.",
+                })
+
+        return word_reviews, unexpected_words
 
     @staticmethod
     def review_free_speech(
@@ -233,10 +304,15 @@ class SpeechAnalyzer:
         raw = self.transcribe(audio_path, language=language)
 
         if mode == "Read a reference passage":
+            word_reviews, unexpected_words = self.evaluate_reference_words(
+                reference, raw["words"]
+            )
             flagged = self.review_reference(
                 reference, raw["words"], threshold, maximum
             )
         else:
+            word_reviews = []
+            unexpected_words = []
             flagged = self.review_free_speech(raw["words"], threshold, maximum)
 
         word_count = len(raw["words"])
@@ -249,5 +325,13 @@ class SpeechAnalyzer:
             "words_per_minute": word_count * 60.0 / duration if duration else 0.0,
             "language": raw["language"],
             "language_probability": raw["language_probability"],
+            "word_reviews": word_reviews,
+            "unexpected_words": unexpected_words,
+            "correct_word_count": sum(
+                item["status"] == "correct" for item in word_reviews
+            ),
+            "incorrect_word_count": sum(
+                item["status"] == "wrong" for item in word_reviews
+            ),
             "flagged_words": flagged,
         }
