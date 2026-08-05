@@ -70,6 +70,12 @@ class SpeechAnalyzerTests(unittest.TestCase):
         self.assertEqual(reviews[1]["status"], "wrong")
         self.assertEqual(reviews[1]["heard"], "Not detected")
 
+    def test_unexpected_transcript_word_is_reported(self):
+        _reviews, unexpected = SpeechAnalyzer.evaluate_reference_words(
+            "red blue", [word("red"), word("green"), word("blue")]
+        )
+        self.assertEqual([item["word"] for item in unexpected], ["green"])
+
     def test_reference_limit_is_enforced(self):
         reference = "word " * (MAX_REFERENCE_WORDS + 1)
         with self.assertRaises(ValueError):
