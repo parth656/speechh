@@ -12,7 +12,12 @@ from practice_generator import (
     generate_practice_content,
     generate_random_passage,
 )
-from speech_analyzer import MAX_REFERENCE_WORDS, SpeechAnalyzer, tokenize
+from speech_analyzer import (
+    ACCURATE_CLOUD_BEAM_SIZE,
+    MAX_REFERENCE_WORDS,
+    SpeechAnalyzer,
+    tokenize,
+)
 
 
 def word(value, confidence=0.9):
@@ -36,6 +41,12 @@ class SpeechAnalyzerTests(unittest.TestCase):
         analyzer.model = FakeModel()
         analyzer.transcribe("recording.wav", language="en")
         self.assertEqual(analyzer.model.options["language"], "en")
+        self.assertEqual(
+            analyzer.model.options["beam_size"], ACCURATE_CLOUD_BEAM_SIZE
+        )
+        self.assertEqual(
+            analyzer.model.options["vad_parameters"]["speech_pad_ms"], 400
+        )
         self.assertNotIn("initial_prompt", analyzer.model.options)
 
     def test_tokenize_normalizes_punctuation(self):

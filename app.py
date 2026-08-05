@@ -24,10 +24,11 @@ st.caption(
     "assessment, clinical diagnosis, or speech-therapy substitute."
 )
 
-MODEL_OPTIONS = {
-    "Base English — recommended for Streamlit Cloud": "base.en",
-    "Small English — higher accuracy, may use too much cloud memory": "small.en",
-}
+# ``base.en`` is the largest English model that consistently fits within
+# Streamlit Community Cloud's limited memory.  Recognition quality is improved
+# with beam search in SpeechAnalyzer instead of loading a larger model that can
+# cause the app to be killed while it is serving users.
+CLOUD_SAFE_MODEL = "base.en"
 
 
 def save_audio(data: bytes, suffix: str) -> str:
@@ -100,9 +101,10 @@ def render_spoken_practice(text: str) -> None:
         height=55,
     )
 
-@st.cache_resource(show_spinner=False, max_entries=2)
-def get_analyzer(model_name: str) -> SpeechAnalyzer:
-    return SpeechAnalyzer(model_name=model_name)
+@st.cache_resource(show_spinner=False, max_entries=1)
+def get_analyzer() -> SpeechAnalyzer:
+    """Keep exactly one small, cloud-safe model in memory."""
+    return SpeechAnalyzer(model_name=CLOUD_SAFE_MODEL)
 
 
 for key, default in {
@@ -121,17 +123,22 @@ if st.session_state.pop("use_generated_practice", False):
 
 with st.sidebar:
     st.header("Settings")
-    selected_label = st.selectbox("Whisper model", list(MODEL_OPTIONS), index=0)
-    selected_model = MODEL_OPTIONS[selected_label]
+    selected_model = CLOUD_SAFE_MODEL
+    st.selectbox(
+        "Speech-recognition model",
+        ["Base English — cloud-safe accuracy"],
+        disabled=True,
+        help=(
+            "This app uses a stronger beam search for better accuracy while "
+            "keeping Streamlit Cloud memory usage reliable."
+        ),
+    )
     threshold = st.slider("Review threshold", 0.20, 0.90, 0.55, 0.01)
     maximum = st.slider("Maximum review words", 3, 20, 10)
 
     language = "en"
     st.caption("This app is configured for English transcription.")
-    if selected_model == "small.en":
-        st.warning("Small English may exceed Streamlit Community Cloud memory limits.")
-    else:
-        st.success("Cloud-safe model selected.")
+    st.success("Cloud-safe model with high-accuracy decoding selected.")
 
 mode = st.radio(
     "Practice mode", ["Read a reference passage", "Free speech"], horizontal=True
@@ -218,7 +225,7 @@ if st.button("Analyze my speech", type="primary", disabled=not ready, use_contai
     try:
         audio_path = save_audio(audio_bytes, audio_suffix)
         with st.status("Loading model and analyzing speech...", expanded=True) as status:
-            analyzer = get_analyzer(selected_model)
+            analyzer = get_analyzer()
             result = analyzer.analyze(
                 audio_path=audio_path,
                 mode=mode,

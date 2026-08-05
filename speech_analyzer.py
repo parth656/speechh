@@ -12,6 +12,11 @@ STOP_WORDS = {
     "were", "with", "you", "your",
 }
 
+# A wider beam improves the quality of English decoding without increasing the
+# model's memory footprint.  Five is a practical upper bound for CPU-backed
+# Streamlit Community Cloud before responsiveness becomes noticeably worse.
+ACCURATE_CLOUD_BEAM_SIZE = 5
+
 # Keep reference matching responsive and avoid allocating an unbounded edit matrix.
 MAX_REFERENCE_WORDS = 300
 MAX_RECOGNIZED_WORDS = 500
@@ -44,11 +49,16 @@ class SpeechAnalyzer:
         """
         options = {
             "task": "transcribe",
-            "beam_size": 3,
+            "beam_size": ACCURATE_CLOUD_BEAM_SIZE,
             "temperature": 0.0,
             "word_timestamps": True,
             "vad_filter": True,
-            "vad_parameters": {"min_silence_duration_ms": 500},
+            # Preserve a little audio around VAD boundaries so initial and
+            # final consonants are less likely to be clipped.
+            "vad_parameters": {
+                "min_silence_duration_ms": 500,
+                "speech_pad_ms": 400,
+            },
         }
         if language:
             options["language"] = language

@@ -14,9 +14,9 @@ The personal practice feature stores a small in-browser profile of words that re
 
 ## Recommended deployment model
 
-Use **Base English (`base.en`)** on Streamlit Community Cloud. It is the default because it has the lowest memory demand and is least likely to crash a free Cloud deployment while loading.
+The app uses **Base English (`base.en`)** on Streamlit Community Cloud. It is the largest English model that is dependable within the free Cloud memory limit. To improve recognition without loading a model that may be killed for using too much memory, it uses a five-beam English decode and preserves audio around voice-activity-detection boundaries.
 
-`small.en` remains available as an optional accuracy upgrade, but it can exceed free Cloud memory limits. The larger and multilingual models are intentionally excluded from the Cloud UI.
+Larger models are intentionally excluded from the Cloud UI. They can improve some recordings, but may exceed Community Cloud memory while an app is serving users.
 
 ## Files
 
