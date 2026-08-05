@@ -6,7 +6,7 @@ A Streamlit practice tool that records or uploads speech, transcribes it with Fa
 
 ## How feedback works
 
-For reference-passage practice, the app transcribes the audio **without giving Whisper the expected passage**, then aligns the independent transcript with the reference. This avoids priming the recognizer toward words that the speaker was expected to say.
+For reference-passage practice, the app transcribes the audio **without giving Whisper the expected passage**, then aligns the independent transcript with the reference. This avoids priming the recognizer toward words that the speaker was expected to say. It shows every expected word as **Correct** when the transcript matches it, or **Wrong / needs review** when a different word is recognized or the word is not detected. These labels describe transcript agreement, not a verified pronunciation score.
 
 For free speech, the app highlights content words with low transcription confidence. These are suggestions to review, not confirmed mistakes.
 
