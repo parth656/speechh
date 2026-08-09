@@ -16,7 +16,7 @@ The personal practice feature stores a small in-browser profile of words that re
 
 Use **Base English (`base.en`)** on Streamlit Community Cloud. It is the default because it has the lowest memory demand and is least likely to crash a free Cloud deployment while loading.
 
-`small.en` remains available as an optional accuracy upgrade, but it can exceed free Cloud memory limits. The larger and multilingual models are intentionally excluded from the Cloud UI.
+All model identifiers supported by the pinned `faster-whisper==1.1.1` release are available in the app: Tiny, Base, Small, Medium, Large v1–v3, Turbo, and the compatible Distil variants (including English-only and multilingual options where supplied). `large` and `turbo` are also included as their library-supported aliases. Larger models can exceed Streamlit Community Cloud memory limits, so use them only when the deployment has sufficient resources.
 
 ## Files
 
