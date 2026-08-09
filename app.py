@@ -25,8 +25,24 @@ st.caption(
 )
 
 MODEL_OPTIONS = {
+    "Tiny English — lowest resource use": "tiny.en",
+    "Tiny — multilingual, lowest resource use": "tiny",
     "Base English — recommended for Streamlit Cloud": "base.en",
-    "Small English — higher accuracy, may use too much cloud memory": "small.en",
+    "Base — multilingual": "base",
+    "Small English": "small.en",
+    "Small — multilingual": "small",
+    "Distil Small English": "distil-small.en",
+    "Medium English": "medium.en",
+    "Medium — multilingual": "medium",
+    "Distil Medium English": "distil-medium.en",
+    "Large v1 — multilingual": "large-v1",
+    "Large v2 — multilingual": "large-v2",
+    "Large v3 — multilingual": "large-v3",
+    "Large — alias for Large v3": "large",
+    "Distil Large v2": "distil-large-v2",
+    "Distil Large v3": "distil-large-v3",
+    "Large v3 Turbo — multilingual": "large-v3-turbo",
+    "Turbo — alias for Large v3 Turbo": "turbo",
 }
 
 
@@ -128,10 +144,13 @@ with st.sidebar:
 
     language = "en"
     st.caption("This app is configured for English transcription.")
-    if selected_model == "small.en":
-        st.warning("Small English may exceed Streamlit Community Cloud memory limits.")
-    else:
+    if selected_model == "base.en":
         st.success("Cloud-safe model selected.")
+    elif selected_model not in {"tiny.en", "tiny", "base"}:
+        st.warning(
+            "This model may exceed Streamlit Community Cloud memory limits. "
+            "Use Base English if the app runs out of memory."
+        )
 
 mode = st.radio(
     "Practice mode", ["Read a reference passage", "Free speech"], horizontal=True
