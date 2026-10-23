@@ -1,35 +1,38 @@
 # NeuroSpeech Coach
 
-A Streamlit practice tool that records or uploads speech, transcribes it with Faster-Whisper, and highlights words worth reviewing. It can also build a new practice passage from words that have repeatedly needed review during the current browser session and read that passage aloud with the browser's built-in text-to-speech.
+A Streamlit speech-practice tool that records or uploads audio, transcribes it with Faster-Whisper, and highlights words worth reviewing. It can create a new practice passage from words that repeatedly need review during the current browser session and read passages aloud using browser speech synthesis.
 
-> Important: transcription confidence and transcript mismatches are **not** pronunciation scores. They can be affected by recording quality, noise, accent, and speech-recognition errors. This app is not a clinical diagnosis or a replacement for a speech-language professional.
+> Transcript confidence and transcript mismatches are **not** pronunciation scores. Results are affected by recording quality, noise, accent, and speech-recognition errors. This app is not a clinical diagnosis or a replacement for a speech-language professional.
 
 ## How feedback works
 
-For reference-passage practice, the app transcribes the audio **without giving Whisper the expected passage**, then aligns the independent transcript with the reference. This avoids priming the recognizer toward words that the speaker was expected to say. It shows every expected word as **Correct** when the transcript matches it, or **Wrong / needs review** when a different word is recognized or the word is not detected. These labels describe transcript agreement, not a verified pronunciation score.
+### Reference-passage practice
 
-For free speech, the app highlights content words with low transcription confidence. These are suggestions to review, not confirmed mistakes.
+The app transcribes the recording without supplying the expected passage to Whisper, then aligns the independent transcript with the reference. This avoids priming the recognizer toward the expected words. Words are marked as matching or needing review based on transcript agreement—not verified articulation correctness.
 
-The personal practice feature stores a small in-browser profile of words that repeatedly need review. It does not train, fine-tune, or modify Whisper, and it cannot promise to correct a speech difficulty quickly. The spoken-practice control uses the browser's local speech-synthesis capability, so voice availability depends on the user's browser and operating system.
+### Free speech
 
-## Recommended deployment model
+The app highlights content words with low transcription confidence as suggestions for review. Low confidence does not prove that a word was mispronounced.
 
-Use **Base English (`base.en`)** on Streamlit Community Cloud. It is the default because it has the lowest memory demand and is least likely to crash a free Cloud deployment while loading.
+### Personal practice
 
-All model identifiers supported by the pinned `faster-whisper==1.1.1` release are available in the app: Tiny, Base, Small, Medium, Large v1–v3, Turbo, and the compatible Distil variants (including English-only and multilingual options where supplied). `large` and `turbo` are also included as their library-supported aliases. Larger models can exceed Streamlit Community Cloud memory limits, so use them only when the deployment has sufficient resources.
+A small in-browser profile tracks words that repeatedly need review and can help generate practice passages. It does not train or fine-tune Whisper and does not promise to cure a speech difficulty. Browser speech synthesis depends on the user's browser and installed voices.
+
+## Recommended deployment
+
+The existing implementation recommends `base.en` for Streamlit Community Cloud because it has relatively low memory requirements. Larger models can exceed the memory limit of a free deployment. Verify available model identifiers against the installed Faster-Whisper version.
 
 ## Files
 
 ```text
-.
-├── app.py
-├── speech_analyzer.py
-├── practice_generator.py
-├── test_speech_analyzer.py
-├── requirements.txt
-├── packages.txt
-├── .gitignore
-└── README.md
+app.py
+speech_analyzer.py
+practice_generator.py
+test_speech_analyzer.py
+requirements.txt
+packages.txt
+.gitignore
+README.md
 ```
 
 ## Run locally
@@ -38,23 +41,23 @@ All model identifiers supported by the pinned `faster-whisper==1.1.1` release ar
 python -m venv .venv
 ```
 
-Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-streamlit run app.py
-```
-
 Linux/macOS:
 
 ```bash
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Check the Python files
+Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
+
+## Validate the code
 
 ```bash
 python -m py_compile app.py speech_analyzer.py practice_generator.py
@@ -63,16 +66,19 @@ python -m unittest -v
 
 ## Deploy to Streamlit Community Cloud
 
-1. Push all project files to GitHub.
-2. Open Streamlit Community Cloud.
-3. Select the repository and `app.py` as the main file.
-4. Deploy or reboot the application.
-5. Keep `base.en` selected initially.
-
-The first analysis can take longer because the selected Whisper model must be downloaded.
+1. Push the repository to GitHub.
+2. Create a Streamlit Community Cloud app for this repository.
+3. Select `app.py` as the main file.
+4. Deploy and start with `base.en`.
+5. Check logs after the first model download and analysis.
 
 ## Practical limits
 
-- Uploads are limited to 25 MB.
-- Reference passages are limited to 300 words so word-by-word review remains responsive.
-- English-only Whisper models are kept in English mode. Multilingual models can either detect language automatically or be set to English.
+- Audio uploads are limited to 25 MB.
+- Reference passages are limited to 300 words.
+- English-only models run in English mode; multilingual models may support language detection or an explicit language setting.
+- The first analysis can be slower while model files are downloaded.
+
+## Privacy and responsible use
+
+Treat recordings as sensitive. Explain whether audio is kept in memory, stored, or sent to any external service. Do not use transcript agreement to make clinical, educational, hiring, or other high-stakes judgments.
